@@ -1,0 +1,33 @@
+# Large datasets (do not commit dataset images/annotations)
+dataset/
+
+# Training runs & logs
+runs/
+
+# Base pretrained weights (trained models are in models/)
+yolo11n.pt
+
+# Python cache & artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+
+# IDE & OS files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+Thumbs.db
+
+# Temp / Scratch files
+scratch/
+.system_generated/
