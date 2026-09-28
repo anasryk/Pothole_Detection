@@ -1,4 +1,6 @@
 import os
+
+part1 = r"""import os
 import sys
 import time
 from pathlib import Path
@@ -63,7 +65,7 @@ st.set_page_config(
 )
 
 # Custom CSS: Adaptive SaaS aesthetic (Supports both Light and Dark mode)
-st.markdown("""
+st.markdown(\"\"\"
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
     
@@ -230,17 +232,17 @@ st.markdown("""
         font-size: 0.85rem;
     }
 </style>
-""", unsafe_allow_html=True)
+\"\"\", unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
 # Model Loaders (Cached with Warmup)
 # -----------------------------------------------------------------------------
 @st.cache_resource(show_spinner=False)
 def load_yolo_model(weights_path: str):
-    """
+    \"\"\"
     Loads and caches the trained YOLO11n model.
     Runs a tiny warmup inference to pre-allocate buffers.
-    """
+    \"\"\"
     try:
         model = YOLO(weights_path)
         dummy = Image.new("RGB", (64, 64), color=(128, 128, 128))
@@ -252,10 +254,10 @@ def load_yolo_model(weights_path: str):
 
 @st.cache_resource(show_spinner=False)
 def load_ssd_model(weights_path: str):
-    """
+    \"\"\"
     Loads and caches the trained SSDLite320 MobileNetV3 model without external downloads.
     Runs warmup inference to pre-allocate PyTorch CPU buffers.
-    """
+    \"\"\"
     try:
         torch.set_num_threads(4)
         model = ssdlite320_mobilenet_v3_large(weights=None, weights_backbone=None)
@@ -284,9 +286,9 @@ def load_ssd_model(weights_path: str):
 # Inference Helpers
 # -----------------------------------------------------------------------------
 def run_yolo_inference(model, image: Image.Image, conf_threshold: float, iou_threshold: float):
-    """
+    \"\"\"
     Runs YOLO prediction with timing and returns list of detections.
-    """
+    \"\"\"
     t0 = time.time()
     results = model.predict(
         source=image,
@@ -314,9 +316,9 @@ def run_yolo_inference(model, image: Image.Image, conf_threshold: float, iou_thr
     return detections, t_inference
 
 def run_ssd_inference(model, image: Image.Image, conf_threshold: float):
-    """
+    \"\"\"
     Preprocesses to 320x320, runs SSD inference on CPU, and scales back coordinates.
-    """
+    \"\"\"
     orig_w, orig_h = image.size
     resized = image.resize((320, 320), Image.BILINEAR)
     img_tensor = TF.to_tensor(resized)
@@ -359,10 +361,10 @@ def run_ssd_inference(model, image: Image.Image, conf_threshold: float):
 # Custom Bounding Box Drawing Function (with dynamic label sizing & color theme)
 # -----------------------------------------------------------------------------
 def draw_detections(image: Image.Image, detections: list, primary_color="#2563eb", label_bg="#1d4ed8", line_width: int = 3) -> Image.Image:
-    """
+    \"\"\"
     Draws bounding boxes and confidence badges. Supports custom theme color.
     Uses compact labels for small images (width < 400px) to prevent overlap.
-    """
+    \"\"\"
     annotated = image.copy()
     draw = ImageDraw.Draw(annotated)
     img_w = annotated.width
@@ -422,13 +424,13 @@ def render_vehicle_detection_ui():
     VEHICLE_MODEL_PATH = BASE_DIR / "runs" / "detect" / "train_vehicle" / "weights" / "best.pt"
     
     if not VEHICLE_MODEL_PATH.exists():
-        st.markdown(f"""
+        st.markdown(f\"\"\"
         <div class="upload-empty">
             <div class="upload-icon">🚗</div>
             <div class="upload-title">Model Training Required</div>
             <div class="upload-sub">Missing model: `{VEHICLE_MODEL_PATH}`<br><br>Please run the vehicle training script to generate the model weights.</div>
         </div>
-        """, unsafe_allow_html=True)
+        \"\"\", unsafe_allow_html=True)
         render_footer()
         return
         
@@ -447,21 +449,18 @@ def render_vehicle_detection_ui():
     uploaded_files = st.file_uploader("Upload images (JPG, JPEG, PNG)", type=["jpg", "jpeg", "png"], label_visibility="collapsed", accept_multiple_files=True)
     
     if not uploaded_files:
-        st.markdown("""
+        st.markdown(\"\"\"
         <div class="upload-empty">
             <div class="upload-icon">📸</div>
             <div class="upload-title">Upload an image to detect vehicles</div>
             <div class="upload-sub">Drag and drop or click to browse files (JPG, PNG)</div>
         </div>
-        """, unsafe_allow_html=True)
+        \"\"\", unsafe_allow_html=True)
         render_footer()
         return
 
     st.markdown('<div class="section-title">2. Visual Results (Collage)</div>', unsafe_allow_html=True)
-    
-    num_images = len(uploaded_files)
-    num_cols = min(num_images, 3)
-    cols = st.columns(num_cols)
+    cols = st.columns(3)
     
     color_map = {
         "Ambulance": "#ef4444",
@@ -472,7 +471,7 @@ def render_vehicle_detection_ui():
     }
     
     for idx, uploaded_file in enumerate(uploaded_files):
-        col = cols[idx % num_cols]
+        col = cols[idx % 3]
         try:
             input_image = Image.open(uploaded_file).convert("RGB")
         except Exception as e:
@@ -616,13 +615,13 @@ def main():
         # Sidebar benchmark metrics based on mode
         if selected_mode == "YOLO11n":
             st.markdown("### Model Information")
-            st.markdown(f"""
+            st.markdown(f\"\"\"
             - **Architecture:** `YOLO11n`
             - **Input Resolution:** `416 × 416`
             - **Model Size:** `{YOLO_METRICS['model_size']}`
             - **Inference Device:** `CPU`
             - **Weights File:** `{active_yolo_path.name}`
-            """)
+            \"\"\")
             st.markdown("---")
             st.markdown("### Test Set Performance")
             st.caption("Evaluated on 133-image Test Split (299 potholes):")
@@ -638,13 +637,13 @@ def main():
 
         elif selected_mode == "SSD":
             st.markdown("### Model Information")
-            st.markdown(f"""
+            st.markdown(f\"\"\"
             - **Architecture:** `SSDLite320 MobileNetV3-Large`
             - **Input Resolution:** `320 × 320`
             - **Model Size:** `{SSD_METRICS['model_size']}`
             - **Inference Device:** `CPU`
             - **Weights File:** `{active_ssd_path.name}`
-            """)
+            \"\"\")
             st.markdown("---")
             st.markdown("### Test Set Performance")
             st.caption("Evaluated on 133-image Test Split (299 potholes):")
@@ -660,15 +659,15 @@ def main():
 
         else:  # Compare Both
             st.markdown("### Comparison Overview")
-            st.markdown("""
+            st.markdown(\"\"\"
             Both detectors evaluated on identical 133-image Test Split (299 ground-truth potholes).
-            """)
-            st.markdown(f"""
+            \"\"\")
+            st.markdown(f\"\"\"
             - **YOLO11n mAP@50:** `{YOLO_METRICS['map50']}`
             - **SSD mAP@50:** `{SSD_METRICS['map50']}`
             - **YOLO11n Latency:** `{YOLO_METRICS['inference_speed']}`
             - **SSD Latency:** `{SSD_METRICS['inference_speed']}`
-            """)
+            \"\"\")
             st.info("YOLO11n delivers higher accuracy, recall, and faster CPU inference.")
 
     # -------------------------------------------------------------------------
@@ -731,7 +730,7 @@ def main():
             else "The SSDLite320 MobileNetV3 detector will localize potholes in real time." if selected_mode == "SSD"
             else "Both YOLO11n and SSDLite320 models will execute on the same image for side-by-side comparison."
         )
-        st.markdown(f"""
+        st.markdown(f\"\"\"
         <div style="background-color: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 8px; padding: 2.5rem 1.5rem; text-align: center; margin-top: 1rem;">
             <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">🛣️</div>
             <p style="font-size: 1.1rem; font-weight: 600; color: #1e293b; margin-bottom: 0.25rem;">
@@ -741,7 +740,7 @@ def main():
                 Choose an image from your device or select one of the verified test samples above. {mode_desc}
             </p>
         </div>
-        """, unsafe_allow_html=True)
+        \"\"\", unsafe_allow_html=True)
         render_footer()
         return
 
@@ -882,7 +881,7 @@ def main():
         st.dataframe(comparison_data, width="stretch", hide_index=True)
 
         # Highlight Box
-        st.markdown("""
+        st.markdown(\"\"\"
         <div class="winner-box">
             <h4 style="color: #166534; margin: 0 0 0.35rem 0;">🏆 Benchmark Winner: YOLO11n</h4>
             <p style="color: #14532d; margin: 0; font-size: 0.92rem; line-height: 1.5;">
@@ -892,7 +891,7 @@ def main():
                 while maintaining a 40% smaller model footprint (5.18 MB vs. 8.70 MB).
             </p>
         </div>
-        """, unsafe_allow_html=True)
+        \"\"\", unsafe_allow_html=True)
 
     render_footer()
 
@@ -915,11 +914,17 @@ def render_detection_table(detections):
             st.dataframe(table_rows, width="stretch", hide_index=True)
 
 def render_footer():
-    st.markdown("""
+    st.markdown(\"\"\"
     <div class="app-footer">
         Computer Vision Project &bull; Pothole Detection & Model Benchmarking (YOLO11n vs. SSDLite320 MobileNetV3)
     </div>
-    """, unsafe_allow_html=True)
+    \"\"\", unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
+"""
+
+with open('app.py', 'w', encoding='utf-8') as f:
+    f.write(part1)
+
+print("Original app.py reconstructed and patched correctly.")
