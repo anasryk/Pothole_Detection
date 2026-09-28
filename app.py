@@ -419,9 +419,12 @@ def draw_detections(image: Image.Image, detections: list, primary_color="#2563eb
 def render_vehicle_detection_ui():
     st.markdown('<div class="app-subtitle">Multi-Class Vehicle Detection: Ambulance, Bus, Car, Motorcycle, Truck</div>', unsafe_allow_html=True)
     
-    VEHICLE_MODEL_PATH = BASE_DIR / "runs" / "detect" / "train_vehicle" / "weights" / "best.pt"
+    VEHICLE_MODEL_PATH = BASE_DIR / "models" / "vehicle_best.pt"
+    VEHICLE_FALLBACK_PATH = BASE_DIR / "runs" / "detect" / "train_vehicle" / "weights" / "best.pt"
     
-    if not VEHICLE_MODEL_PATH.exists():
+    active_vehicle_path = VEHICLE_MODEL_PATH if VEHICLE_MODEL_PATH.exists() else (VEHICLE_FALLBACK_PATH if VEHICLE_FALLBACK_PATH.exists() else None)
+    
+    if not active_vehicle_path:
         st.markdown(f"""
         <div class="upload-empty">
             <div class="upload-icon">🚗</div>
@@ -432,7 +435,7 @@ def render_vehicle_detection_ui():
         render_footer()
         return
         
-    vehicle_model = load_yolo_model(str(VEHICLE_MODEL_PATH))
+    vehicle_model = load_yolo_model(str(active_vehicle_path))
     
     with st.sidebar:
         st.markdown("### Detection Thresholds")
